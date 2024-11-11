@@ -5,6 +5,9 @@
 #include <queue>
 #include <functional>
 #include <string>
+#include <codecvt>
+#include <locale>
+#include "/opt/homebrew/opt/libomp/include/omp.h"
 
 const std::vector<std::string> text = 
 {"Сижу за решеткой в темнице сырой.",
@@ -12,41 +15,41 @@ const std::vector<std::string> text =
 "Мой грустный товарищ, махая крылом,"
 "Кровавую пищу клюет под окном,"};
 
-#define RU_LETTER_A     std::string{'а'}
-#define RU_LETTER_B     std::string{"б"}
-#define RU_LETTER_V     std::string{"в"}
-#define RU_LETTER_G     std::string{"г"}
-#define RU_LETTER_D     std::string{"д"}
-#define RU_LETTER_YE    std::string{"е"}
-#define RU_LETTER_YEO   std::string{"ё"}
-#define RU_LETTER_ZH    std::string{"ж"}
-#define RU_LETTER_Z     std::string{"з"}
-#define RU_LETTER_I     std::string{"т"}
-#define RU_LETTER_IY    std::string{"й"}
-#define RU_LETTER_K     std::string{"к"}
-#define RU_LETTER_L     std::string{"л"}
-#define RU_LETTER_M     std::string{"м"}
-#define RU_LETTER_N     std::string{"н"}
-#define RU_LETTER_O     std::string{"о"}
-#define RU_LETTER_P     std::string{"п"}
-#define RU_LETTER_R     std::string{"р"}
-#define RU_LETTER_S     std::string{"с"}
-#define RU_LETTER_T     std::string{"т"}
-#define RU_LETTER_U     std::string{"у"}
-#define RU_LETTER_F     std::string{"ф"}
-#define RU_LETTER_KH    std::string{"х"}
-#define RU_LETTER_TS    std::string{"ц"}
-#define RU_LETTER_CH    std::string{"ч"}
-#define RU_LETTER_SH    std::string{"ш"}
-#define RU_LETTER_SHCH  std::string{"щ"}
-#define RU_LETTER_HARD  std::string{"ъ"}
-#define RU_LETTER_Y     std::string{"ы"}
-#define RU_LETTER_SOFT  std::string{"ь"}
-#define RU_LETTER_E     std::string{"э"}
-#define RU_LETTER_YU    std::string{"ю"}
-#define RU_LETTER_YA    std::string{"я"}
+#define RU_LETTER_A     u'а'
+#define RU_LETTER_B     u'б'
+#define RU_LETTER_V     u'в'
+#define RU_LETTER_G     u'г'
+#define RU_LETTER_D     u'д'
+#define RU_LETTER_YE    u'е'
+#define RU_LETTER_YEO   u'ё'
+#define RU_LETTER_ZH    u'ж'
+#define RU_LETTER_Z     u'з'
+#define RU_LETTER_I     u'т'
+#define RU_LETTER_IY    u'й'
+#define RU_LETTER_K     u'к'
+#define RU_LETTER_L     u'л'
+#define RU_LETTER_M     u'м'
+#define RU_LETTER_N     u'н'
+#define RU_LETTER_O     u'о'
+#define RU_LETTER_P     u'п'
+#define RU_LETTER_R     u'р'
+#define RU_LETTER_S     u'с'
+#define RU_LETTER_T     u'т'
+#define RU_LETTER_U     u'у'
+#define RU_LETTER_F     u'ф'
+#define RU_LETTER_KH    u'х'
+#define RU_LETTER_TS    u'ц'
+#define RU_LETTER_CH    u'ч'
+#define RU_LETTER_SH    u'ш'
+#define RU_LETTER_SHCH  u'щ'
+#define RU_LETTER_HARD  u'ъ'
+#define RU_LETTER_Y     u'ы'
+#define RU_LETTER_SOFT  u'ь'
+#define RU_LETTER_E     u'э'
+#define RU_LETTER_YU    u'ю'
+#define RU_LETTER_YA    u'я'
 
-bool definePhonemotype(std::string a, std::string b)
+bool definePhonemotype(char16_t a, char16_t b)
 {
     if ((a == RU_LETTER_G || a == RU_LETTER_K || a == RU_LETTER_KH) && (b == RU_LETTER_G || b == RU_LETTER_K || b == RU_LETTER_KH))
         return true;
@@ -63,7 +66,7 @@ bool definePhonemotype(std::string a, std::string b)
     return false;
 }
 
-bool defineSonorous(std::string a, std::string b)
+bool defineSonorous(char16_t a, char16_t b)
 {
     if ((a == RU_LETTER_M || a == RU_LETTER_N) && (b == RU_LETTER_M || b == RU_LETTER_N))
         return true;
@@ -76,14 +79,14 @@ bool defineSonorous(std::string a, std::string b)
     return false;
 }
 
-bool defineHardness(std::string a, std::string b)
+bool defineHardness(char16_t a, char16_t b)
 {
     if ((a == RU_LETTER_SH || a == RU_LETTER_SHCH) && (b == RU_LETTER_SH || b == RU_LETTER_SHCH))
         return true;
     return false;
 }
 
-bool defineOcclusive(std::string a, std::string b)
+bool defineOcclusive(char16_t a, char16_t b)
 {
     if (((a == RU_LETTER_B || a == RU_LETTER_P) && (b == RU_LETTER_D || b == RU_LETTER_T)) && ((b == RU_LETTER_B || b == RU_LETTER_P) && (a == RU_LETTER_D || a == RU_LETTER_T)))
         return true;
@@ -92,7 +95,7 @@ bool defineOcclusive(std::string a, std::string b)
     return false;
 }
 
-bool defineDeafness(std::string a, std::string b)
+bool defineDeafness(char16_t a, char16_t b)
 {
     if ((a == RU_LETTER_B || a == RU_LETTER_T) && (b == RU_LETTER_B || b == RU_LETTER_T))
         return true;
@@ -101,22 +104,22 @@ bool defineDeafness(std::string a, std::string b)
     return false;
 }
 
-bool defineGroup(std::string a, std::string b)
+bool defineGroup(char16_t a, char16_t b)
 {
     return false;
 }
 
-bool defineSoftIota(std::string a, std::string b)
+bool defineSoftIota(char16_t a, char16_t b)
 {
     return false;
 }
 
-bool defineHardIota(std::string a, std::string b)
+bool defineHardIota(char16_t a, char16_t b)
 {
     return false;
 }
 
-double defineCost(std::string a, std::string b)
+double defineCost(char16_t a, char16_t b)
 {
     double cost = 0;
 
@@ -142,7 +145,7 @@ double defineCost(std::string a, std::string b)
     return cost;
 }
 
-std::vector<std::vector<double>> levenshteinDist(std::string word1, std::string word2) {
+std::vector<std::vector<double>> levenshteinDist(std::u16string word1, std::u16string word2) {
     int size1 = word1.size();
     int size2 = word2.size();
     std::vector<std::vector<double>> verif(size1+1, std::vector<double>(size2+1));
@@ -159,10 +162,7 @@ std::vector<std::vector<double>> levenshteinDist(std::string word1, std::string 
 
     for (int i = 1; i <= size1; i++) {
         for (int j = 1; j <= size2; j++) {
-            double cost = defineCost(std::string{word2[j - 1]}, std::string{word1[i - 1]});
-
-            cost = (word2[j - 1] == word2[i - 1] ? 0 : 1);
-
+            double cost = defineCost(word2[j - 1], word1[i - 1]);
             verif[i][j] = fmin(fmin(verif[i - 1][j] + 1, verif[i][j - 1] + 1), verif[i - 1][j - 1] + cost);
         }
     }
@@ -206,34 +206,47 @@ int main()
     {
         int threadNum = omp_get_thread_num();
 
-        std::string str1;
-        std::string str2;
+         std::u16string str1;
+         std::u16string str2;
         switch (threadNum)
         {
         case 0:
-            str1 = text[0];
-            str1 = text[1];
+            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf16conv;
+            str1 = utf16conv.from_bytes(text[0]);
+            str2 = utf16conv.from_bytes(text[1]);
             break;
             
-        case 1:
-            str1 = text[2];
-            str1 = text[3];
-            break;
+        // case 1:
+        //     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf16conv;
+        //     str1 = utf16conv.from_bytes(text[2]);
+        //     str2 = utf16conv.from_bytes(text[3]);
+        //     break;
 
-        case 2:
-            str1 = text[0];
-            str1 = text[2];
-            break;
+        // case 2:
+        //     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf16conv;
+        //     str1 = utf16conv.from_bytes(text[0]);
+        //     str2 = utf16conv.from_bytes(text[2]);
+        //     break;
 
-        case 3:
-            str1 = text[1];
-            str1 = text[3];
-            break;
+        // case 3:
+        //     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf16conv;
+        //     str1 = utf16conv.from_bytes(text[1]);
+        //     str2 = utf16conv.from_bytes(text[3]);
+        //     break;
         }
         std::vector<std::vector<double>> levRes = levenshteinDist(str1, str2);
-        std::vector<std::vector<double>> diagRes = findDiagonals(levRes);
+        // std::vector<std::vector<double>> diagRes = findDiagonals(levRes);
 
-        res[threadNum] = diagRes;
+        for (int i = 0; i < levRes.size(); i++)
+        {
+            for (int j = 0; j < levRes[i].size(); j++)
+            {
+                std::cout << levRes[i][j] << " ";
+            }
+            std::cout << std::endl;
+        }
+
+    //     res[threadNum] = diagRes;
     }
     return 0;
 }
